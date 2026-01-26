@@ -23,7 +23,7 @@ export const scrapeKroger = async (): Promise<Job[]> => {
             .querySelector('span[data-bind="html: primaryLocation"]')
             ?.textContent?.trim();
 
-          const date = infoElements[2]?.textContent?.trim();
+          const date = infoElements[1]?.textContent?.trim();
 
           return {
             title: el.querySelector(".job-tile__title")?.textContent?.trim(),
