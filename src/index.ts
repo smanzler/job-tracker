@@ -7,6 +7,7 @@ const scrapeJobs = async () => {
   for (const scraper of scrapers) {
     try {
       const jobs = await scraper.scrape();
+      console.log("jobs", jobs);
       console.log(`${scraper.name}: ${jobs.length} jobs found`);
       const interestingJobs = jobs.filter((job) => isInteresting(job));
       console.log(

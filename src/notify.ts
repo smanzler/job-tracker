@@ -5,7 +5,7 @@ export async function notify(job: Job) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      content: `New job posted:\n\n*${job.company}* - ${job.posted_at}\n**${job.title}**\n\n${job.url}`,
+      content: `${job.company} - ${job.posted_at}\n${job.title}\n\n${job.url}`,
     }),
   });
 }

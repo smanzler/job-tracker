@@ -9,7 +9,7 @@ export const scrapeKroger = async (): Promise<Job[]> => {
       "https://www.krogerfamilycareers.com/en/sites/CX_2001/jobs?keyword=software&lastSelectedFacet=POSTING_DATES&mode=location&selectedFlexFieldsFacets=%22AttributeChar4%7CTechnology+and+Digital%22&selectedPostingDatesFacet=7&sortBy=POSTING_DATES_DESC",
     );
 
-    await page.waitForSelector(".job-list-item", { state: "visible" });
+    await page.locator(".jobs-list__list").waitFor({ state: "visible" });
 
     const jobData = await page
       .locator(".job-list-item")
