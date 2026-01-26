@@ -21,4 +21,8 @@ const scrapeJobs = async () => {
   }
 };
 
-scrapeJobs().catch(console.error);
+scrapeJobs()
+  .catch(console.error)
+  .then(() => {
+    console.log("Finished scraping");
+  });
