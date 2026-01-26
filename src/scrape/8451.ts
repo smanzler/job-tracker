@@ -44,8 +44,10 @@ export const scrape8451 = async (): Promise<Job[]> => {
       url: edge.node.url,
       company: "84.51",
       location: edge.node.location.name,
-      department: edge.node.departments.join(", "),
-      office: edge.node.offices.join(", "),
+      department: edge.node.departments
+        .map((department) => department.name)
+        .join(", "),
+      office: edge.node.offices.map((office) => office.name).join(", "),
     }));
   } catch (error) {
     console.error(error);
