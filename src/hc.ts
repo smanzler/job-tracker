@@ -1,4 +1,4 @@
-import { chromium } from "playwright";
+import { Browser, chromium } from "playwright";
 import { Job } from "./job";
 import { z } from "zod";
 
@@ -54,8 +54,10 @@ const jobSchema = z.object({
   }),
 });
 
-async function getJobsFromHiringCafe(searchState: SearchState): Promise<Job[]> {
-  const browser = await chromium.launch({ headless: true });
+async function getJobsFromHiringCafe(
+  browser: Browser,
+  searchState: SearchState,
+): Promise<Job[]> {
   const page = await browser.newPage();
 
   try {
@@ -97,15 +99,15 @@ async function getJobsFromHiringCafe(searchState: SearchState): Promise<Job[]> {
   } catch (error) {
     console.error(error);
     return [];
-  } finally {
-    await browser.close();
   }
 }
 
 export async function getJobs(): Promise<Job[]> {
+  const browser = await chromium.launch({ headless: true });
   const jobsMap = new Map<string, Job>();
+
   for (const searchState of searchStates) {
-    const newJobs = await getJobsFromHiringCafe(searchState);
+    const newJobs = await getJobsFromHiringCafe(browser, searchState);
     console.log(`Found ${newJobs.length} jobs from ${searchState.name}`);
     for (const job of newJobs) {
       if (!jobsMap.has(job.id)) {
@@ -113,5 +115,7 @@ export async function getJobs(): Promise<Job[]> {
       }
     }
   }
+
+  await browser.close();
   return Array.from(jobsMap.values());
 }
