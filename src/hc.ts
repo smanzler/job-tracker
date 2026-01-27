@@ -35,10 +35,12 @@ const jobSchema = z.object({
 });
 
 async function getJobsFromHiringCafe(url: string): Promise<Job[]> {
-  const browser = await chromium.launch();
+  const browser = await chromium.launch({
+    headless: true,
+  });
   const page = await browser.newPage();
   try {
-    await page.goto(url);
+    await page.goto(url, { waitUntil: "networkidle" });
     const response = await page.waitForResponse((res) => {
       return res.url().includes("/api/search-jobs?s=") && res.status() === 200;
     });
