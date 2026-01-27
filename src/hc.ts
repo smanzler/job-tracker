@@ -1,6 +1,7 @@
 import { chromium } from "playwright";
 import { Job } from "./job";
 import { z } from "zod";
+import type { Response } from "playwright";
 
 const urls = [
   "https://hiring.cafe/?searchState=%7B%22defaultToUserLocation%22%3Afalse%2C%22seniorityLevel%22%3A%5B%22No%20Prior%20Experience%20Required%22%2C%22Entry%20Level%22%5D%2C%22sortBy%22%3A%22date%22%2C%22technologyKeywordsQuery%22%3A%22TypeScript%22%7D",
@@ -35,16 +36,17 @@ const jobSchema = z.object({
 });
 
 async function getJobsFromHiringCafe(url: string): Promise<Job[]> {
-  const browser = await chromium.launch({
-    headless: true,
-  });
+  const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage();
+
   try {
-    await page.goto(url, { waitUntil: "networkidle" });
-    const response = await page.waitForResponse((res) => {
-      console.log(res.url());
-      return res.url().includes("/api/search-jobs?s=") && res.status() === 200;
-    });
+    const [response] = await Promise.all([
+      page.waitForResponse(
+        (res) =>
+          res.url().includes("/api/search-jobs?s=") && res.status() === 200,
+      ),
+      page.goto(url, { waitUntil: "networkidle" }),
+    ]);
 
     if (!response || !response.ok()) {
       throw new Error("No response from Hiring Cafe");
