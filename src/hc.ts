@@ -50,7 +50,6 @@ const jobSchema = z.object({
   v5_processed_company_data: z.object({
     name: z.string(),
     website: z.string().nullable(),
-    image_url: z.string().nullable(),
   }),
 });
 
@@ -90,7 +89,9 @@ async function getJobsFromHiringCafe(
       commitment: job.v5_processed_job_data.commitment,
       company: job.v5_processed_company_data.name ?? "Unknown",
       company_url: job.v5_processed_company_data.website ?? undefined,
-      company_logo: job.v5_processed_company_data.image_url ?? undefined,
+      company_logo: job.v5_processed_company_data.website
+        ? `https://www.google.com/s2/favicons?domain=${job.v5_processed_company_data.website}&sz=128`
+        : undefined,
       min_industry_and_role_yoe:
         job.v5_processed_job_data.min_industry_and_role_yoe,
       technical_tools: job.v5_processed_job_data.technical_tools,
