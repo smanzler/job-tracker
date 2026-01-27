@@ -21,6 +21,7 @@ export async function getUniqueJobs(jobs: Job[]): Promise<Job[]> {
   console.log(`Found ${existingIdSet.size} existing jobs`);
 
   const newJobs = jobs.filter((job) => !existingIdSet.has(job.id));
+
   console.log(`Found ${newJobs.length} new jobs`);
 
   if (newJobs.length > 0) {

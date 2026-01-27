@@ -2,19 +2,19 @@ import "dotenv/config";
 import { getUniqueJobs } from "./unique";
 import { isInteresting } from "./match";
 import { notify } from "./notify";
-import { getJobsFromHiringCafe } from "./hc";
+import { getJobs } from "./hc";
 
 async function main() {
-  const jobs = await getJobsFromHiringCafe();
+  const jobs = await getJobs();
   console.log(`Found ${jobs.length} jobs`);
+
+  // const interestingJobs = jobs.filter((job) => isInteresting(job));
+  // console.log(`Found ${interestingJobs.length} interesting jobs`);
 
   const uniqueJobs = await getUniqueJobs(jobs);
   console.log(`Found ${uniqueJobs.length} unique jobs`);
 
-  const interestingJobs = uniqueJobs.filter((job) => isInteresting(job));
-  console.log(`Found ${interestingJobs.length} interesting jobs`);
-
-  for (const job of interestingJobs) {
+  for (const job of uniqueJobs) {
     await notify(job);
   }
 }

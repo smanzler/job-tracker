@@ -10,14 +10,11 @@ const CAREER_LEVEL_KEYWORDS = [
   "graduate",
   "intern",
   "level 1",
-  "level 2",
   "i",
-  "ii",
 ];
 
 const ROLE_KEYWORDS = [
-  "software engineer",
-  "software developer",
+  "software",
   "developer",
   "engineer",
   "programmer",
@@ -38,41 +35,12 @@ const TECH_KEYWORDS = [
   "java",
   "react",
   "node",
-  "angular",
-  "vue",
   "ios",
   "swift",
-  "android",
-  "kotlin",
-  "c++",
   "c#",
-  "go",
-  "rust",
-  "ruby",
 ];
 
-const EXCLUDE_KEYWORDS = [
-  "senior",
-  "sr.",
-  "lead",
-  "principal",
-  "staff",
-  "architect",
-  "director",
-  "manager",
-  "head of",
-  "vp",
-  "vice president",
-  "chief",
-  "level 3",
-  "level 4",
-  "level 5",
-  "iii",
-  "iv",
-  "v",
-  "10+ years",
-  "8+ years",
-];
+const EXCLUDE_KEYWORDS = ["senior"];
 
 export function isInteresting(job: Job): boolean {
   const title = job.title.toLowerCase();
@@ -84,6 +52,7 @@ export function isInteresting(job: Job): boolean {
   );
 
   if (hasSeniorKeyword) {
+    console.log(`Skipping job ${job.title} because it contains senior keyword`);
     return false;
   }
 
@@ -91,6 +60,7 @@ export function isInteresting(job: Job): boolean {
     combinedText.includes(keyword),
   );
   if (!isSoftwareRole) {
+    console.log(`Skipping job ${job.title} because it is not a software role`);
     return false;
   }
 
