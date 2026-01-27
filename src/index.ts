@@ -14,7 +14,11 @@ async function main() {
   const uniqueJobs = await getUniqueJobs(jobs);
   console.log(`Found ${uniqueJobs.length} unique jobs`);
 
-  for (const job of uniqueJobs) {
+  const sortedJobs = uniqueJobs.sort((a, b) => {
+    return a.posted_at.getTime() - b.posted_at.getTime();
+  });
+
+  for (const job of sortedJobs) {
     await notify(job);
   }
 }

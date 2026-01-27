@@ -42,7 +42,6 @@ async function getJobsFromHiringCafe(url: string): Promise<Job[]> {
   try {
     const [response] = await Promise.all([
       page.waitForResponse((res) => {
-        console.log(res.url());
         return (
           res.url().includes("/api/search-jobs?s=") && res.status() === 200
         );
