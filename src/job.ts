@@ -15,6 +15,7 @@ export const jobSchema = z.object({
   location: z.string().optional(),
   salary: z.string().optional(),
   posted_at: z.coerce.date(),
+  search_state: z.string(),
 });
 
 export type Job = z.infer<typeof jobSchema>;

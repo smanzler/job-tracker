@@ -5,7 +5,7 @@ export async function notify(job: Job) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      content: `${job.title} - ${job.posted_at.toLocaleDateString()}\n${job.company}\n\n${job.url}`,
+      content: `${job.title} - ${job.posted_at.toLocaleDateString()}\n${job.company}\nSource: ${job.search_state}\n\n${job.url}`,
     }),
   });
 }
