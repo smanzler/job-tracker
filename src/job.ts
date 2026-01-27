@@ -13,7 +13,10 @@ export const jobSchema = z.object({
   job_description: z.string().optional(),
   department: z.string().optional(),
   location: z.string().optional(),
-  salary: z.string().optional(),
+  salary_min: z.number().nullable(),
+  salary_max: z.number().nullable(),
+  workplace_type: z.string().optional(),
+  commitment: z.array(z.string()).optional(),
   posted_at: z.coerce.date(),
   search_state: z.string(),
 });

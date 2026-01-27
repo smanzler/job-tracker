@@ -81,6 +81,13 @@ async function getJobsFromHiringCafe(
     const mappedJobs = jobs.map((job) => ({
       id: job.id,
       title: job.job_information.title,
+      department: job.v5_processed_job_data.job_category,
+      summary: job.v5_processed_job_data.requirements_summary,
+      location: job.v5_processed_job_data.formatted_workplace_location,
+      salary_min: job.v5_processed_job_data.yearly_min_compensation,
+      salary_max: job.v5_processed_job_data.yearly_max_compensation,
+      workplace_type: job.v5_processed_job_data.workplace_type,
+      commitment: job.v5_processed_job_data.commitment,
       company: job.v5_processed_company_data.name ?? "Unknown",
       company_url: job.v5_processed_company_data.website ?? undefined,
       company_logo: job.v5_processed_company_data.image_url ?? undefined,
@@ -88,9 +95,7 @@ async function getJobsFromHiringCafe(
         job.v5_processed_job_data.min_industry_and_role_yoe,
       technical_tools: job.v5_processed_job_data.technical_tools,
       url: job.apply_url,
-      summary: job.v5_processed_job_data.requirements_summary,
       job_description: job.job_information.description,
-      department: job.v5_processed_job_data.job_category,
       posted_at: job.v5_processed_job_data.estimated_publish_date,
       search_state: searchState.name,
     }));
