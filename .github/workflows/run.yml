@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-      MONGODB_URI: ${{ secrets.MONGODB_URI }}
+      MONGO_URI: ${{ secrets.MONGO_URI }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
