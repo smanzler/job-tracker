@@ -12,23 +12,31 @@ if (!MONGO_URI) {
 const client = new MongoClient(MONGO_URI);
 
 export async function getUniqueJobs(jobs: Job[]): Promise<Job[]> {
-  await client.connect();
-  const db = client.db(DB_NAME);
-  const collection = db.collection(COLLECTION_NAME);
+  try {
+    await client.connect();
+    const collection = client.db(DB_NAME).collection(COLLECTION_NAME);
 
-  const existingJobIds = await collection.distinct("id");
-  const existingIdSet = new Set(existingJobIds);
-  console.log(`Found ${existingIdSet.size} existing jobs`);
+    const existingJobIds = await collection.distinct("id");
+    const existingIdSet = new Set(existingJobIds);
+    console.log(`Found ${existingIdSet.size} existing jobs in database`);
 
-  const newJobs = jobs.filter((job) => !existingIdSet.has(job.id));
+    const newJobs = jobs.filter((job) => !existingIdSet.has(job.id));
+    console.log(`Identified ${newJobs.length} new jobs`);
 
-  console.log(`Found ${newJobs.length} new jobs`);
+    if (newJobs.length > 0) {
+      await collection.insertMany(newJobs);
+      console.log(`Inserted ${newJobs.length} new jobs into database`);
+    }
 
-  if (newJobs.length > 0) {
-    await collection.insertMany(newJobs);
+    return newJobs;
+  } catch (error) {
+    console.error("Error filtering unique jobs:", error);
+    throw new Error(
+      `Failed to process unique jobs: ${
+        error instanceof Error ? error.message : String(error)
+      }`
+    );
+  } finally {
+    await client.close();
   }
-
-  await client.close();
-
-  return newJobs;
 }

@@ -1,26 +1,25 @@
 import "dotenv/config";
 import { getUniqueJobs } from "./unique";
-import { isInteresting } from "./match";
 import { notify } from "./notify";
 import { getJobs } from "./hc";
 
 async function main() {
-  const jobs = await getJobs();
-  console.log(`Found ${jobs.length} jobs`);
+  try {
+    console.log("Starting job scraper...");
 
-  // const interestingJobs = jobs.filter((job) => isInteresting(job));
-  // console.log(`Found ${interestingJobs.length} interesting jobs`);
+    const { jobs, errors } = await getJobs();
+    console.log(`Found ${jobs.length} total jobs`);
 
-  const uniqueJobs = await getUniqueJobs(jobs);
-  console.log(`Found ${uniqueJobs.length} unique jobs`);
+    const uniqueJobs = await getUniqueJobs(jobs);
+    console.log(`Found ${uniqueJobs.length} unique jobs`);
 
-  const sortedJobs = uniqueJobs.sort((a, b) => {
-    return a.posted_at.getTime() - b.posted_at.getTime();
-  });
+    await notify(uniqueJobs, errors);
 
-  for (const job of sortedJobs) {
-    await notify(job);
+    console.log("Job scraper completed successfully");
+  } catch (error) {
+    console.error("Fatal error in job scraper:", error);
+    process.exit(1);
   }
 }
 
-main().catch(console.error);
+main();

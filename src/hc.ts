@@ -7,6 +7,11 @@ type SearchState = {
   url: string;
 };
 
+type Result = {
+  jobs: Job[];
+  errors: any[];
+};
+
 const searchStates: SearchState[] = [
   {
     name: "TypeScript",
@@ -55,29 +60,41 @@ const jobSchema = z.object({
 
 async function getJobsFromHiringCafe(
   browser: Browser,
-  searchState: SearchState,
-): Promise<Job[]> {
+  searchState: SearchState
+): Promise<Result> {
   const page = await browser.newPage();
 
   try {
     const [response] = await Promise.all([
-      page.waitForResponse((res) => {
-        return (
+      page.waitForResponse(
+        (res) =>
           res.url().includes("/api/search-jobs?s=") && res.status() === 200
-        );
-      }),
+      ),
       page.goto(searchState.url, { waitUntil: "networkidle" }),
     ]);
 
-    if (!response || !response.ok()) {
-      throw new Error("No response from Hiring Cafe");
+    if (!response?.ok()) {
+      throw new Error(
+        `Failed to fetch jobs from ${searchState.name}: ${
+          response?.status() ?? "No response"
+        }`
+      );
     }
 
     const { results } = (await response.json()) as { results: any[] };
+    const errors: { id: string; error: any }[] = [];
 
-    const jobs = results.map((result) => jobSchema.parse(result));
+    type ParsedJob = z.infer<typeof jobSchema>;
+    const validJobs = results.reduce<ParsedJob[]>((acc, result) => {
+      try {
+        acc.push(jobSchema.parse(result));
+      } catch (parseError) {
+        errors.push({ id: result.id, error: parseError });
+      }
+      return acc;
+    }, []);
 
-    const mappedJobs = jobs.map((job) => ({
+    const mappedJobs = validJobs.map((job: ParsedJob) => ({
       id: job.id,
       title: job.job_information.title,
       department: job.v5_processed_job_data.job_category,
@@ -101,19 +118,35 @@ async function getJobsFromHiringCafe(
       search_state: searchState.name,
     }));
 
-    return mappedJobs;
+    return { jobs: mappedJobs, errors };
   } catch (error) {
-    console.error(error);
-    return [];
+    console.error(`Error fetching jobs from ${searchState.name}:`, error);
+    return {
+      jobs: [],
+      errors: [
+        {
+          id: searchState.name,
+          error: error instanceof Error ? error.message : String(error),
+        },
+      ],
+    };
+  } finally {
+    await page.close();
   }
 }
 
-export async function getJobs(): Promise<Job[]> {
+export async function getJobs(): Promise<Result> {
   const browser = await chromium.launch({ headless: true });
   const jobsMap = new Map<string, Job>();
 
+  const errors: { id: string; error: any }[] = [];
+
   for (const searchState of searchStates) {
-    const newJobs = await getJobsFromHiringCafe(browser, searchState);
+    const { jobs: newJobs, errors: newErrors } = await getJobsFromHiringCafe(
+      browser,
+      searchState
+    );
+    errors.push(...newErrors);
     console.log(`Found ${newJobs.length} jobs from ${searchState.name}`);
     for (const job of newJobs) {
       if (!jobsMap.has(job.id)) {
@@ -123,5 +156,5 @@ export async function getJobs(): Promise<Job[]> {
   }
 
   await browser.close();
-  return Array.from(jobsMap.values());
+  return { jobs: Array.from(jobsMap.values()), errors };
 }
