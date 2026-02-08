@@ -58,9 +58,6 @@ export async function getFits(jobs: Job[]): Promise<Job[]> {
   const candidateTensor = embeddings.slice([0, 1]);
   const jobsTensor = embeddings.slice([1, numRows]);
 
-  console.log(candidateTensor.dims);
-  console.log(jobsTensor.dims);
-
   const scores = await matmul(candidateTensor, jobsTensor.transpose(1, 0));
   const scoresArray = scores.tolist()[0];
 
@@ -69,9 +66,11 @@ export async function getFits(jobs: Job[]): Promise<Job[]> {
     fit_score: scoresArray[i],
   }));
 
-  return jobs.map((job) => ({
+  const jobsWithFitScores = jobs.map((job) => ({
     ...job,
     fit_score:
       jobsWithFit.find((score) => score.id === job.id)?.fit_score ?? null,
   }));
+
+  return jobsWithFitScores;
 }

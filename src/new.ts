@@ -1,5 +1,6 @@
 import { MongoClient } from "mongodb";
 import { Job } from "./job";
+import { getFits } from "./fit";
 
 const MONGO_URI = process.env.MONGO_URI;
 const DB_NAME = "jobNotifier";
@@ -11,7 +12,7 @@ if (!MONGO_URI) {
 
 const client = new MongoClient(MONGO_URI);
 
-export async function getUniqueJobs(jobs: Job[]): Promise<Job[]> {
+export async function getNewJobs(jobs: Job[]): Promise<Job[]> {
   try {
     await client.connect();
     const collection = client.db(DB_NAME).collection(COLLECTION_NAME);
@@ -23,10 +24,12 @@ export async function getUniqueJobs(jobs: Job[]): Promise<Job[]> {
     const newJobs = jobs.filter((job) => !existingIdSet.has(job.id));
     console.log(`Identified ${newJobs.length} new jobs`);
 
-    if (newJobs.length > 0) {
-      await collection.insertMany(newJobs);
-      console.log(`Inserted ${newJobs.length} new jobs into database`);
-    }
+    if (newJobs.length === 0) return [];
+
+    const fittedJobs = await getFits(newJobs);
+
+    await collection.insertMany(fittedJobs);
+    console.log(`Inserted ${fittedJobs.length} fitted jobs into database`);
 
     // clean up jobs that are archived and are over 7 days old
     const deletedJobs = await collection.deleteMany({
@@ -36,11 +39,11 @@ export async function getUniqueJobs(jobs: Job[]): Promise<Job[]> {
 
     console.log(`Cleaned up ${deletedJobs.deletedCount} archived jobs`);
 
-    return newJobs;
+    return fittedJobs;
   } catch (error) {
-    console.error("Error filtering unique jobs:", error);
+    console.error("Error filtering new jobs:", error);
     throw new Error(
-      `Failed to process unique jobs: ${
+      `Failed to process new jobs: ${
         error instanceof Error ? error.message : String(error)
       }`
     );

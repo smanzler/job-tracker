@@ -1,9 +1,7 @@
 import "dotenv/config";
-import { getUniqueJobs } from "./unique";
 import { notify } from "./notify";
 import { getJobs } from "./hc";
-import { getFits } from "./fit";
-import { Job } from "./job";
+import { getNewJobs } from "./new";
 
 async function main() {
   try {
@@ -12,16 +10,10 @@ async function main() {
     const { jobs, errors } = await getJobs();
     console.log(`Found ${jobs.length} total jobs`);
 
-    const uniqueJobs = await getUniqueJobs(jobs);
-    console.log(`Found ${uniqueJobs.length} unique jobs`);
+    const newJobs = await getNewJobs(jobs);
+    console.log(`Found ${newJobs.length} new jobs`);
 
-    let fittedJobs: Job[] = [];
-    if (uniqueJobs.length > 0) {
-      const fittedJobs = await getFits(uniqueJobs);
-      console.log(`Found ${fittedJobs.length} fitted jobs`);
-    }
-
-    await notify(fittedJobs, errors);
+    await notify(newJobs, errors);
     console.log("Job scraper completed successfully");
   } catch (error) {
     console.error("Fatal error in job scraper:", error);
