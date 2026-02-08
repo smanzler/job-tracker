@@ -28,6 +28,14 @@ export async function getUniqueJobs(jobs: Job[]): Promise<Job[]> {
       console.log(`Inserted ${newJobs.length} new jobs into database`);
     }
 
+    // clean up jobs that are archived and are over 7 days old
+    const deletedJobs = await collection.deleteMany({
+      archived: true,
+      posted_at: { $lt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
+    });
+
+    console.log(`Cleaned up ${deletedJobs.deletedCount} archived jobs`);
+
     return newJobs;
   } catch (error) {
     console.error("Error filtering unique jobs:", error);

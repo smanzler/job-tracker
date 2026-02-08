@@ -1,6 +1,6 @@
 import { Job } from "./job";
 
-const content = (jobs: Job[], errors: { id: string; error: any }[]) => {
+const content = (jobs: Job[], errors: string[]) => {
   if (jobs.length === 0) {
     return "No new jobs found";
   }
@@ -24,7 +24,7 @@ const content = (jobs: Job[], errors: { id: string; error: any }[]) => {
       ? [
           "",
           `**Errors (${errors.length}):**`,
-          ...errors.map((err) => `- ${err.id}: ${err.error}`),
+          ...errors.map((err) => `- ${err}`),
         ]
       : [];
 
@@ -37,10 +37,7 @@ const content = (jobs: Job[], errors: { id: string; error: any }[]) => {
   ].join("\n");
 };
 
-export async function notify(
-  jobs: Job[],
-  errors: { id: string; error: any }[]
-): Promise<void> {
+export async function notify(jobs: Job[], errors: string[]): Promise<void> {
   const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
 
   if (!webhookUrl) {

@@ -19,6 +19,7 @@ export const jobSchema = z.object({
   commitment: z.array(z.string()).optional(),
   posted_at: z.coerce.date(),
   search_state: z.string(),
+  fit_score: z.number().nullable(),
 });
 
 export type Job = z.infer<typeof jobSchema>;

@@ -9,7 +9,7 @@ type SearchState = {
 
 type Result = {
   jobs: Job[];
-  errors: any[];
+  errors: string[];
 };
 
 const searchStates: SearchState[] = [
@@ -62,6 +62,7 @@ async function getJobsFromHiringCafe(
   browser: Browser,
   searchState: SearchState
 ): Promise<Result> {
+  const errors: string[] = [];
   const page = await browser.newPage();
 
   try {
@@ -82,14 +83,13 @@ async function getJobsFromHiringCafe(
     }
 
     const { results } = (await response.json()) as { results: any[] };
-    const errors: { id: string; error: any }[] = [];
 
     type ParsedJob = z.infer<typeof jobSchema>;
     const validJobs = results.reduce<ParsedJob[]>((acc, result) => {
       try {
         acc.push(jobSchema.parse(result));
       } catch (parseError) {
-        errors.push({ id: result.id, error: parseError });
+        errors.push(`Job ${result.id} failed to parse: ${parseError}`);
       }
       return acc;
     }, []);
@@ -116,20 +116,15 @@ async function getJobsFromHiringCafe(
       job_description: job.job_information.description,
       posted_at: job.v5_processed_job_data.estimated_publish_date,
       search_state: searchState.name,
+      fit_score: null,
     }));
 
     return { jobs: mappedJobs, errors };
   } catch (error) {
-    console.error(`Error fetching jobs from ${searchState.name}:`, error);
-    return {
-      jobs: [],
-      errors: [
-        {
-          id: searchState.name,
-          error: error instanceof Error ? error.message : String(error),
-        },
-      ],
-    };
+    const message = `Error fetching jobs from ${searchState.name}: ${error}`;
+    console.error(message);
+    errors.push(message);
+    return { jobs: [], errors };
   } finally {
     await page.close();
   }
@@ -139,7 +134,7 @@ export async function getJobs(): Promise<Result> {
   const browser = await chromium.launch({ headless: true });
   const jobsMap = new Map<string, Job>();
 
-  const errors: { id: string; error: any }[] = [];
+  const errors: string[] = [];
 
   for (const searchState of searchStates) {
     const { jobs: newJobs, errors: newErrors } = await getJobsFromHiringCafe(

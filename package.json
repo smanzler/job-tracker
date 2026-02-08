@@ -13,6 +13,7 @@
   "license": "ISC",
   "packageManager": "pnpm@10.25.0",
   "dependencies": {
+    "@huggingface/transformers": "^3.8.1",
     "dotenv": "^17.2.3",
     "mongodb": "^7.0.0",
     "node-cron": "^4.2.1",
