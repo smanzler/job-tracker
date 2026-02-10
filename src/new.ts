@@ -22,7 +22,7 @@ export async function getNewJobs(jobs: Job[]): Promise<Job[]> {
     console.log(`Found ${existingIdSet.size} existing jobs in database`);
 
     const newJobs = jobs.filter((job) => !existingIdSet.has(job.id));
-    console.log(`Identified ${newJobs.length} new jobs`);
+    console.log(`Found ${newJobs.length} new jobs`);
 
     if (newJobs.length === 0) return [];
 
@@ -45,7 +45,7 @@ export async function getNewJobs(jobs: Job[]): Promise<Job[]> {
     throw new Error(
       `Failed to process new jobs: ${
         error instanceof Error ? error.message : String(error)
-      }`
+      }`,
     );
   } finally {
     await client.close();

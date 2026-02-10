@@ -36,7 +36,7 @@ Tech stack exposure in order of proficiency:
 export async function getFits(jobs: Job[]): Promise<Job[]> {
   const embed = await pipeline(
     "feature-extraction",
-    "onnx-community/Qwen3-Embedding-0.6B-ONNX"
+    "onnx-community/Qwen3-Embedding-0.6B-ONNX",
   );
 
   const inputJobs = jobs
@@ -65,6 +65,8 @@ export async function getFits(jobs: Job[]): Promise<Job[]> {
     ...job,
     fit_score: scoresArray[i],
   }));
+
+  console.log(`Found ${jobsWithFit.length} fitted jobs`);
 
   const jobsWithFitScores = jobs.map((job) => ({
     ...job,
