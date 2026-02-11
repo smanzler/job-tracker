@@ -6,7 +6,7 @@ COPY package*.json ./
 RUN npm install -g pnpm && pnpm install
 RUN pnpm exec playwright install chromium --with-deps
 
-RUN node -e "(async () => { const { pipeline } = await import('@huggingface/transformers'); await pipeline('feature-extraction', 'onnx-community/Qwen3-Embedding-0.6B-ONNX'); })()"
+RUN node -e "(async () => { const { pipeline } = await import('@huggingface/transformers'); await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2', { dtype: 'q8' }); })()"
 
 COPY . .
 

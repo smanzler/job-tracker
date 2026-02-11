@@ -1,4 +1,8 @@
-import { matmul, pipeline } from "@huggingface/transformers";
+import {
+  FeatureExtractionPipelineOptions,
+  matmul,
+  pipeline,
+} from "@huggingface/transformers";
 import { Job } from "./job";
 
 type FitScore = {
@@ -36,7 +40,10 @@ Tech stack exposure in order of proficiency:
 export async function getFits(jobs: Job[]): Promise<Job[]> {
   const embed = await pipeline(
     "feature-extraction",
-    "onnx-community/Qwen3-Embedding-0.6B-ONNX",
+    "Xenova/all-MiniLM-L6-v2",
+    {
+      dtype: "q8",
+    },
   );
 
   const inputJobs = jobs
@@ -46,20 +53,22 @@ export async function getFits(jobs: Job[]): Promise<Job[]> {
       desc: job.job_description!,
     }));
 
-  const inputTexts = [candidate, ...inputJobs.map((job) => job.desc)];
-
-  const embeddings = await embed(inputTexts, {
+  const embedSettings: FeatureExtractionPipelineOptions = {
     pooling: "last_token",
     normalize: true,
-  });
+  };
 
-  const numRows = embeddings.dims[0];
+  const candidateEmbedding = await embed([candidate], embedSettings);
 
-  const candidateTensor = embeddings.slice([0, 1]);
-  const jobsTensor = embeddings.slice([1, numRows]);
+  const scoresArray: number[] = [];
+  const batchSize = 4;
 
-  const scores = await matmul(candidateTensor, jobsTensor.transpose(1, 0));
-  const scoresArray = scores.tolist()[0];
+  for (let i = 0; i < inputJobs.length; i += batchSize) {
+    const batch = inputJobs.slice(i, i + batchSize).map((job) => job.desc);
+    const embeddings = await embed(batch, embedSettings);
+    const scores = await matmul(candidateEmbedding, embeddings.transpose(1, 0));
+    scoresArray.push(...scores.tolist()[0]);
+  }
 
   const jobsWithFit: FitScore[] = inputJobs.map((job, i) => ({
     ...job,

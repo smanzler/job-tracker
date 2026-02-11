@@ -3,7 +3,7 @@ import { z } from "zod";
 export const jobSchema = z.object({
   id: z.string(),
   title: z.string(),
-  company: z.string(),
+  company: z.string().nullable(),
   company_url: z.string().optional(),
   company_logo: z.string().optional(),
   min_industry_and_role_yoe: z.number().nullable(),

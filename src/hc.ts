@@ -53,14 +53,14 @@ const jobSchema = z.object({
     min_industry_and_role_yoe: z.union([z.number(), z.null()]),
   }),
   v5_processed_company_data: z.object({
-    name: z.string(),
+    name: z.string().nullable(),
     website: z.string().nullable(),
   }),
 });
 
 async function getJobsFromHiringCafe(
   browser: Browser,
-  searchState: SearchState
+  searchState: SearchState,
 ): Promise<Result> {
   const errors: string[] = [];
   const page = await browser.newPage();
@@ -69,7 +69,7 @@ async function getJobsFromHiringCafe(
     const [response] = await Promise.all([
       page.waitForResponse(
         (res) =>
-          res.url().includes("/api/search-jobs?s=") && res.status() === 200
+          res.url().includes("/api/search-jobs?s=") && res.status() === 200,
       ),
       page.goto(searchState.url, { waitUntil: "networkidle" }),
     ]);
@@ -78,7 +78,7 @@ async function getJobsFromHiringCafe(
       throw new Error(
         `Failed to fetch jobs from ${searchState.name}: ${
           response?.status() ?? "No response"
-        }`
+        }`,
       );
     }
 
@@ -139,7 +139,7 @@ export async function getJobs(): Promise<Result> {
   for (const searchState of searchStates) {
     const { jobs: newJobs, errors: newErrors } = await getJobsFromHiringCafe(
       browser,
-      searchState
+      searchState,
     );
     errors.push(...newErrors);
     console.log(`Found ${newJobs.length} jobs from ${searchState.name}`);
