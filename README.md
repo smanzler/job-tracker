@@ -13,7 +13,7 @@ Automatically pulls job postings from HiringCafe, processes them with AI to gene
 
 ## Tech Stack
 
-- Node.js for scripting
-- MongoDB for storage
-- AI Processing - @huggingface/transformers
+- Script: Node.js
+- Database: MongoDB
+- AI Processing: @huggingface/transformers
 - Scheduling: Can be run manually or on a cron job
