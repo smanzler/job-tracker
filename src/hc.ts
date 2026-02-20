@@ -52,9 +52,9 @@ const jobSchema = z.object({
     estimated_publish_date: z.coerce.date(),
     min_industry_and_role_yoe: z.union([z.number(), z.null()]),
   }),
-  v5_processed_company_data: z.object({
+  enriched_company_data: z.object({
     name: z.string().nullable(),
-    website: z.string().nullable(),
+    homepage_uri: z.string().nullable(),
   }),
 });
 
@@ -104,10 +104,10 @@ async function getJobsFromHiringCafe(
       salary_max: job.v5_processed_job_data.yearly_max_compensation,
       workplace_type: job.v5_processed_job_data.workplace_type,
       commitment: job.v5_processed_job_data.commitment,
-      company: job.v5_processed_company_data.name ?? "Unknown",
-      company_url: job.v5_processed_company_data.website ?? undefined,
-      company_logo: job.v5_processed_company_data.website
-        ? `https://www.google.com/s2/favicons?domain=${job.v5_processed_company_data.website}&sz=128`
+      company: job.enriched_company_data.name ?? "Unknown",
+      company_url: job.enriched_company_data.homepage_uri ?? undefined,
+      company_logo: job.enriched_company_data.homepage_uri
+        ? `https://www.google.com/s2/favicons?domain=${job.enriched_company_data.homepage_uri}&sz=128`
         : undefined,
       min_industry_and_role_yoe:
         job.v5_processed_job_data.min_industry_and_role_yoe,
