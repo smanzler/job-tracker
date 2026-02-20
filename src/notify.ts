@@ -1,8 +1,17 @@
 import { Job } from "./job";
 
 const content = (jobs: Job[], errors: string[]) => {
+  const errorSection =
+    errors.length > 0
+      ? [
+          "",
+          `**Errors (${errors.length}):**`,
+          ...errors.map((err) => `- ${err}`),
+        ]
+      : [];
+
   if (jobs.length === 0) {
-    return "No new jobs found";
+    return ["No new jobs found", ...errorSection].join("\n");
   }
 
   const categories = [
@@ -18,15 +27,6 @@ const content = (jobs: Job[], errors: string[]) => {
     const count = jobs.filter((job) => job.search_state === category).length;
     return `- ${count} ${category} jobs`;
   });
-
-  const errorSection =
-    errors.length > 0
-      ? [
-          "",
-          `**Errors (${errors.length}):**`,
-          ...errors.map((err) => `- ${err}`),
-        ]
-      : [];
 
   return [
     `**Found ${jobs.length} jobs:**`,
@@ -56,7 +56,7 @@ export async function notify(jobs: Job[], errors: string[]): Promise<void> {
 
     if (!response.ok) {
       throw new Error(
-        `Discord webhook failed with status ${response.status}: ${response.statusText}`
+        `Discord webhook failed with status ${response.status}: ${response.statusText}`,
       );
     }
 
@@ -66,7 +66,7 @@ export async function notify(jobs: Job[], errors: string[]): Promise<void> {
     throw new Error(
       `Discord notification failed: ${
         error instanceof Error ? error.message : String(error)
-      }`
+      }`,
     );
   }
 }
