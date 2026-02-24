@@ -30,8 +30,7 @@ export async function getNewJobs(jobs: Job[]): Promise<Job[]> {
 
     if (newJobs.length === 0) return [];
 
-    const { jobs: jobsWithBatchJobNames, batchJobName } =
-      await generateFits(newJobs);
+    const batchJobName = await generateFits(newJobs);
 
     await batchCollection.insertOne({
       name: batchJobName,
@@ -39,10 +38,10 @@ export async function getNewJobs(jobs: Job[]): Promise<Job[]> {
       status: "pending",
     });
 
-    await collection.insertMany(jobsWithBatchJobNames);
-    console.log(
-      `Inserted ${jobsWithBatchJobNames.length} jobs with batch job names into database`,
-    );
+    console.log(`Inserted batch job ${batchJobName} into database`);
+
+    await collection.insertMany(newJobs);
+    console.log(`Inserted ${newJobs.length} jobs into database`);
 
     // clean up jobs that are archived and are over 7 days old
     const deletedJobs = await collection.deleteMany({
@@ -52,7 +51,7 @@ export async function getNewJobs(jobs: Job[]): Promise<Job[]> {
 
     console.log(`Cleaned up ${deletedJobs.deletedCount} archived jobs`);
 
-    return jobsWithBatchJobNames;
+    return newJobs;
   } catch (error) {
     console.error("Error filtering new jobs:", error);
     throw new Error(

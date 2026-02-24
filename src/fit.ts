@@ -119,9 +119,7 @@ Evaluate the candidate's fit for this position.`,
   }));
 };
 
-export async function generateFits(
-  jobs: Job[],
-): Promise<{ jobs: Job[]; batchJobName: string }> {
+export async function generateFits(jobs: Job[]): Promise<string> {
   const prompts = createPrompts(jobs);
 
   console.log(JSON.stringify(prompts, null, 2));
@@ -138,18 +136,5 @@ export async function generateFits(
     throw new Error("Batch job name is undefined");
   }
 
-  const jobsWithBatchJobNames: Job[] = jobs.map((job, index) => ({
-    ...job,
-    batch_job: {
-      name: inlineBatchJob.name!,
-      index,
-    },
-  }));
-
-  console.log(JSON.stringify(jobsWithBatchJobNames, null, 2));
-
-  return {
-    jobs: jobsWithBatchJobNames,
-    batchJobName: inlineBatchJob.name,
-  };
+  return inlineBatchJob.name;
 }

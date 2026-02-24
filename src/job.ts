@@ -20,12 +20,6 @@ export const jobSchema = z.object({
   posted_at: z.coerce.date(),
   search_state: z.string(),
   fit_score: z.number().nullable(),
-  batch_job: z
-    .object({
-      name: z.string(),
-      index: z.number(),
-    })
-    .optional(),
 });
 
 export type Job = z.infer<typeof jobSchema>;
