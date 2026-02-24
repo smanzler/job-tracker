@@ -1,5 +1,6 @@
 import { Job } from "./job";
-import { BatchJob, BatchJobSourceUnion, GoogleGenAI } from "@google/genai";
+import { BatchJobSourceUnion, GoogleGenAI } from "@google/genai";
+import { z } from "zod";
 
 const API_KEY = process.env.GEMINI_API_KEY;
 
@@ -72,7 +73,17 @@ SCORING CRITERIA (0-100):
   * 5-7: Moderate alignment
   * 0-4: Poor alignment
 
-OUTPUT FORMAT: Return ONLY a single number (0-100) with no explanation.`;
+When providing your reason, briefly explain the score by highlighting:
+- Key skill matches or gaps
+- Experience level alignment
+- Notable technology overlaps or mismatches
+- Any major strengths or deal-breakers`;
+
+const outputSchema = z.object({
+  job_id: z.string(),
+  score: z.number(),
+  reason: z.string(),
+});
 
 const createPrompts = (jobs: Job[]): BatchJobSourceUnion => {
   return jobs.map((job) => ({
@@ -82,6 +93,7 @@ const createPrompts = (jobs: Job[]): BatchJobSourceUnion => {
           {
             text: `Evaluate fit for this position:
 
+Job ID: ${job.id}
 Title: ${job.title}
 Company: ${job.company}
 Required Experience: ${job.min_industry_and_role_yoe ?? "Not specified"} years
@@ -91,7 +103,7 @@ Workplace Type: ${job.workplace_type ?? "Not specified"}
 Required Technologies: ${job.technical_tools?.join(", ") ?? "Not specified"}
 Role Summary: ${job.summary ?? "No summary available"}
 
-Return only the fit score (0-100):`,
+Evaluate the candidate's fit for this position.`,
             role: "user",
           },
         ],
@@ -101,6 +113,8 @@ Return only the fit score (0-100):`,
       systemInstruction: {
         parts: [{ text: systemInstruction }],
       },
+      responseMimeType: "application/json",
+      responseSchema: z.toJSONSchema(outputSchema),
     },
   }));
 };
