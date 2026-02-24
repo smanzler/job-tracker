@@ -1,10 +1,11 @@
 import { MongoClient } from "mongodb";
 import { Job } from "./job";
-import { getFits } from "./fit";
+import { generateFits } from "./fit";
 
 const MONGO_URI = process.env.MONGO_URI;
 const DB_NAME = "jobNotifier";
 const COLLECTION_NAME = "seenJobs";
+const BATCH_COLLECTION_NAME = "fitBatchJobs";
 
 if (!MONGO_URI) {
   throw new Error("MONGO_URI is not set");
@@ -16,6 +17,9 @@ export async function getNewJobs(jobs: Job[]): Promise<Job[]> {
   try {
     await client.connect();
     const collection = client.db(DB_NAME).collection(COLLECTION_NAME);
+    const batchCollection = client
+      .db(DB_NAME)
+      .collection(BATCH_COLLECTION_NAME);
 
     const existingJobIds = await collection.distinct("id");
     const existingIdSet = new Set(existingJobIds);
@@ -26,10 +30,19 @@ export async function getNewJobs(jobs: Job[]): Promise<Job[]> {
 
     if (newJobs.length === 0) return [];
 
-    const fittedJobs = await getFits(newJobs);
+    const { jobs: jobsWithBatchJobNames, batchJobName } =
+      await generateFits(newJobs);
 
-    await collection.insertMany(fittedJobs);
-    console.log(`Inserted ${fittedJobs.length} fitted jobs into database`);
+    await batchCollection.insertOne({
+      name: batchJobName,
+      created_at: new Date(),
+      status: "pending",
+    });
+
+    await collection.insertMany(jobsWithBatchJobNames);
+    console.log(
+      `Inserted ${jobsWithBatchJobNames.length} jobs with batch job names into database`,
+    );
 
     // clean up jobs that are archived and are over 7 days old
     const deletedJobs = await collection.deleteMany({
@@ -39,7 +52,7 @@ export async function getNewJobs(jobs: Job[]): Promise<Job[]> {
 
     console.log(`Cleaned up ${deletedJobs.deletedCount} archived jobs`);
 
-    return fittedJobs;
+    return jobsWithBatchJobNames;
   } catch (error) {
     console.error("Error filtering new jobs:", error);
     throw new Error(

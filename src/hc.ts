@@ -29,6 +29,10 @@ const searchStates: SearchState[] = [
     name: "No YOE Required",
     url: "https://hiring.cafe/?searchState=%7B%22defaultToUserLocation%22%3Afalse%2C%22seniorityLevel%22%3A%5B%22No+Prior+Experience+Required%22%2C%22Entry+Level%22%5D%2C%22sortBy%22%3A%22date%22%2C%22jobTitleQuery%22%3A%22software%22%2C%22dateFetchedPastNDays%22%3A4%2C%22roleYoeRange%22%3A%5B0%2C0%5D%7D",
   },
+  {
+    name: "Remote",
+    url: "https://hiring.cafe/?searchState=%7B%22sortBy%22%3A%22date%22%2C%22jobTitleQuery%22%3A%22software%22%2C%22dateFetchedPastNDays%22%3A4%2C%22locations%22%3A%5B%7B%22types%22%3A%5B%22country%22%5D%2C%22formatted_address%22%3A%22United+States%22%2C%22address_components%22%3A%5B%7B%22long_name%22%3A%22United+States%22%2C%22short_name%22%3A%22US%22%2C%22types%22%3A%5B%22country%22%5D%7D%5D%2C%22workplace_types%22%3A%5B%22Remote%22%5D%2C%22options%22%3A%7B%7D%2C%22id%22%3A%22United+Statescountry%22%7D%5D%2C%22roleYoeRange%22%3A%5B0%2C2%5D%7D",
+  },
 ];
 
 const jobSchema = z.object({
@@ -52,10 +56,12 @@ const jobSchema = z.object({
     estimated_publish_date: z.coerce.date(),
     min_industry_and_role_yoe: z.union([z.number(), z.null()]),
   }),
-  enriched_company_data: z.object({
-    name: z.string().nullable(),
-    homepage_uri: z.string().nullable(),
-  }),
+  enriched_company_data: z
+    .object({
+      name: z.string().nullable(),
+      homepage_uri: z.string().nullable(),
+    })
+    .optional(),
 });
 
 async function getJobsFromHiringCafe(
@@ -104,9 +110,9 @@ async function getJobsFromHiringCafe(
       salary_max: job.v5_processed_job_data.yearly_max_compensation,
       workplace_type: job.v5_processed_job_data.workplace_type,
       commitment: job.v5_processed_job_data.commitment,
-      company: job.enriched_company_data.name ?? "Unknown",
-      company_url: job.enriched_company_data.homepage_uri ?? undefined,
-      company_logo: job.enriched_company_data.homepage_uri
+      company: job.enriched_company_data?.name ?? "Unknown",
+      company_url: job.enriched_company_data?.homepage_uri ?? undefined,
+      company_logo: job.enriched_company_data?.homepage_uri
         ? `https://www.google.com/s2/favicons?domain=${job.enriched_company_data.homepage_uri}&sz=128`
         : undefined,
       min_industry_and_role_yoe:

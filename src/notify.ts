@@ -14,12 +14,9 @@ const content = (jobs: Job[], errors: string[]) => {
     return ["No new jobs found", ...errorSection].join("\n");
   }
 
-  const categories = [
-    "TypeScript",
-    "Early Career",
-    "New Grad",
-    "No YOE Required",
-  ];
+  const categories = Array.from(
+    new Set(jobs.map((job) => job.search_state).filter(Boolean)),
+  );
 
   const link = `[View all jobs](https://jobby.simonmanzler.com)`;
 
