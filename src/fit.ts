@@ -1,5 +1,5 @@
 import { Job } from "./job";
-import { BatchJobSourceUnion, GoogleGenAI } from "@google/genai";
+import { BatchJobSourceUnion, GoogleGenAI, Type } from "@google/genai";
 import { z } from "zod";
 
 const API_KEY = process.env.GEMINI_API_KEY;
@@ -79,12 +79,6 @@ When providing your reason, briefly explain the score by highlighting:
 - Notable technology overlaps or mismatches
 - Any major strengths or deal-breakers`;
 
-const outputSchema = z.object({
-  job_id: z.string(),
-  score: z.number(),
-  reason: z.string(),
-});
-
 const createPrompts = (jobs: Job[]): BatchJobSourceUnion => {
   return jobs.map((job) => ({
     contents: [
@@ -114,7 +108,15 @@ Evaluate the candidate's fit for this position.`,
         parts: [{ text: systemInstruction }],
       },
       responseMimeType: "application/json",
-      responseSchema: z.toJSONSchema(outputSchema),
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          job_id: { type: Type.STRING },
+          score: { type: Type.NUMBER },
+          reason: { type: Type.STRING },
+        },
+        required: ["job_id", "score", "reason"],
+      },
     },
   }));
 };
