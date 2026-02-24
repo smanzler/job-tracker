@@ -111,6 +111,8 @@ export async function generateFits(
 ): Promise<{ jobs: Job[]; batchJobName: string }> {
   const prompts = createPrompts(jobs);
 
+  console.log(JSON.stringify(prompts, null, 2));
+
   const inlineBatchJob = await ai.batches.create({
     model: "gemini-2.5-flash-lite",
     src: prompts,
@@ -130,6 +132,8 @@ export async function generateFits(
       index,
     },
   }));
+
+  console.log(JSON.stringify(jobsWithBatchJobNames, null, 2));
 
   return {
     jobs: jobsWithBatchJobNames,
