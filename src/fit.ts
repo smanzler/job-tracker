@@ -71,13 +71,7 @@ SCORING CRITERIA (0-100):
 - Role Type (10 points): Does the role align with candidate's target roles and preferences?
   * 8-10: Strong alignment with target role and preferences
   * 5-7: Moderate alignment
-  * 0-4: Poor alignment
-
-When providing your reason, briefly explain the score by highlighting:
-- Key skill matches or gaps
-- Experience level alignment
-- Notable technology overlaps or mismatches
-- Any major strengths or deal-breakers`;
+  * 0-4: Poor alignment`;
 
 const createPrompts = (jobs: Job[]): BatchJobSourceUnion => {
   return jobs.map((job) => ({
@@ -113,9 +107,8 @@ Evaluate the candidate's fit for this position.`,
         properties: {
           job_id: { type: Type.STRING },
           score: { type: Type.NUMBER },
-          reason: { type: Type.STRING },
         },
-        required: ["job_id", "score", "reason"],
+        required: ["job_id", "score"],
       },
     },
   }));
@@ -123,8 +116,6 @@ Evaluate the candidate's fit for this position.`,
 
 export async function generateFits(jobs: Job[]): Promise<string> {
   const prompts = createPrompts(jobs);
-
-  console.log(JSON.stringify(prompts, null, 2));
 
   const inlineBatchJob = await ai.batches.create({
     model: "gemini-2.5-flash-lite",

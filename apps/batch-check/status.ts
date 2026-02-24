@@ -1,5 +1,6 @@
 import { ai } from "./ai";
 import type { BatchJob } from "./fetch-batches";
+import { z } from "zod";
 
 const completedStates = new Set([
   "JOB_STATE_SUCCEEDED",
@@ -8,10 +9,18 @@ const completedStates = new Set([
   "JOB_STATE_EXPIRED",
 ]);
 
+const responseSchema = z.object({
+  job_id: z.string(),
+  score: z.number(),
+});
+
+export type Response = z.infer<typeof responseSchema>;
+
 export async function getCompletedBatchJobs(
   batchJobs: BatchJob[],
-): Promise<{ batchJobName: string; scores: number[] }[]> {
-  const completedBatchJobs: { batchJobName: string; scores: number[] }[] = [];
+): Promise<{ batchJobName: string; responses: Response[] }[]> {
+  const completedBatchJobs: { batchJobName: string; responses: Response[] }[] =
+    [];
 
   for (const mongoBatchJob of batchJobs) {
     try {
@@ -28,18 +37,12 @@ export async function getCompletedBatchJobs(
         continue;
       }
 
-      const scores: number[] = [];
+      console.log(JSON.stringify(inlineBatchJob, null, 2));
+
+      const responses: Response[] = [];
 
       if (inlineBatchJob.dest?.inlinedResponses) {
-        for (let i = 0; i < inlineBatchJob.dest.inlinedResponses.length; i++) {
-          const inlineResponse = inlineBatchJob.dest.inlinedResponses[i];
-          let score;
-
-          if (inlineResponse.error) {
-            console.error(`Error: ${inlineResponse.error}`);
-            continue;
-          }
-
+        for (const inlineResponse of inlineBatchJob.dest.inlinedResponses) {
           if (!inlineResponse.response) {
             console.error(`Response is undefined`);
             continue;
@@ -47,26 +50,27 @@ export async function getCompletedBatchJobs(
 
           inlineResponse.response.responseId;
 
-          if (inlineResponse.response.text !== undefined) {
-            score = inlineResponse.response.text;
-          } else {
-            score =
-              inlineResponse.response.candidates?.[0]?.content?.parts?.[0]
-                ?.text;
-          }
+          const responseAsText =
+            inlineResponse.response.candidates?.[0]?.content?.parts?.[0]?.text;
 
-          if (score === undefined || isNaN(Number(score))) {
-            console.error(`Score is undefined`);
+          if (!responseAsText) {
+            console.error(`Response is undefined`);
             continue;
           }
 
-          scores.push(Number(score));
+          const responseAsJson = responseSchema.parse(
+            JSON.parse(responseAsText),
+          );
+
+          console.log(JSON.stringify(responseAsJson, null, 2));
+
+          responses.push(responseAsJson);
         }
       }
 
       completedBatchJobs.push({
         batchJobName: mongoBatchJob.name,
-        scores,
+        responses,
       });
     } catch (error) {
       console.error(

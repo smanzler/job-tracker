@@ -2,6 +2,7 @@ import { ObjectId } from "mongodb";
 import { z } from "zod";
 import { ai } from "./ai";
 import { client } from "./mongo";
+import type { Response } from "./status";
 
 export const jobSchema = z.object({
   _id: z.instanceof(ObjectId),
@@ -24,12 +25,6 @@ export const jobSchema = z.object({
   posted_at: z.coerce.date(),
   search_state: z.string(),
   fit_score: z.number().nullable(),
-  batch_job: z
-    .object({
-      name: z.string(),
-      index: z.number(),
-    })
-    .optional(),
 });
 
 const DB_NAME = "jobNotifier";
@@ -37,11 +32,11 @@ const COLLECTION_NAME = "seenJobs";
 const BATCH_COLLECTION_NAME = "fitBatchJobs";
 
 export async function updateJobScores(
-  completedBatchJobs: { batchJobName: string; scores: number[] }[],
+  completedBatchJobs: { batchJobName: string; responses: Response[] }[],
 ) {
   try {
     await client.connect();
-    const collection = client.db(DB_NAME).collection(COLLECTION_NAME);
+    const jobsCollection = client.db(DB_NAME).collection(COLLECTION_NAME);
     const batchCollection = client
       .db(DB_NAME)
       .collection(BATCH_COLLECTION_NAME);
@@ -49,30 +44,14 @@ export async function updateJobScores(
     const successfulBatchJobs = new Set<string>();
 
     for (const completedBatchJob of completedBatchJobs) {
-      const jobs = await collection
-        .find({ "batch_job.name": completedBatchJob.batchJobName })
-        .sort({ "batch_job.index": 1 })
-        .toArray();
-
-      const parsedJobs = jobs.map((job) => jobSchema.parse(job));
-
-      console.log(
-        `Updating ${parsedJobs.length} jobs for batch ${completedBatchJob.batchJobName}`,
-      );
-
-      for (let i = 0; i < parsedJobs.length; i++) {
-        const job = parsedJobs[i];
-        const score = completedBatchJob.scores[i];
-
-        if (score !== undefined) {
-          await collection.updateOne(
-            { _id: job._id },
-            { $set: { fit_score: score } },
-          );
-          console.log(`Updated job ${job.id} (index ${i}) with score ${score}`);
-        } else {
-          console.warn(`No score found for job ${job.id} at index ${i}`);
-        }
+      for (const response of completedBatchJob.responses) {
+        await jobsCollection.updateOne(
+          { id: response.job_id },
+          { $set: { fit_score: response.score } },
+        );
+        console.log(
+          `Updated job ${response.job_id} with score ${response.score}`,
+        );
       }
 
       successfulBatchJobs.add(completedBatchJob.batchJobName);
