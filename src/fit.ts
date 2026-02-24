@@ -125,7 +125,10 @@ export async function generateFits(
 
   const jobsWithBatchJobNames: Job[] = jobs.map((job, index) => ({
     ...job,
-    batch_job_name: `${inlineBatchJob.name}-${index}`,
+    batch_job: {
+      name: inlineBatchJob.name!,
+      index,
+    },
   }));
 
   return {
