@@ -1,5 +1,7 @@
-import { MongoClient, ObjectId } from "mongodb";
+import { ObjectId } from "mongodb";
 import { z } from "zod";
+import { ai } from "./ai";
+import { client } from "./mongo";
 
 export const jobSchema = z.object({
   _id: z.instanceof(ObjectId),
@@ -30,16 +32,9 @@ export const jobSchema = z.object({
     .optional(),
 });
 
-const MONGO_URI = process.env.MONGO_URI;
 const DB_NAME = "jobNotifier";
 const COLLECTION_NAME = "seenJobs";
 const BATCH_COLLECTION_NAME = "fitBatchJobs";
-
-if (!MONGO_URI) {
-  throw new Error("MONGO_URI is not set");
-}
-
-const client = new MongoClient(MONGO_URI);
 
 export async function updateJobScores(
   completedBatchJobs: { batchJobName: string; scores: number[] }[],
@@ -86,6 +81,13 @@ export async function updateJobScores(
     await batchCollection.deleteMany({
       name: { $in: Array.from(successfulBatchJobs) },
     });
+
+    for (const batchJobName of successfulBatchJobs) {
+      await ai.batches.delete({
+        name: batchJobName,
+      });
+      console.log(`Deleted batch ${batchJobName}`);
+    }
   } catch (error) {
     console.error("Error updating job scores:", error);
     throw new Error(`Failed to update job scores: ${error}`);

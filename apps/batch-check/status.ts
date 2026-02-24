@@ -1,11 +1,5 @@
-import { GoogleGenAI } from "@google/genai";
+import { ai } from "./ai";
 import type { BatchJob } from "./fetch-batches";
-
-const API_KEY = process.env.GEMINI_API_KEY;
-
-if (!API_KEY) throw new Error("API key not set");
-
-const ai = new GoogleGenAI({ apiKey: API_KEY });
 
 const completedStates = new Set([
   "JOB_STATE_SUCCEEDED",

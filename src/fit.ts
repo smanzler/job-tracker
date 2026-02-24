@@ -76,7 +76,6 @@ OUTPUT FORMAT: Return ONLY a single number (0-100) with no explanation.`;
 
 const createPrompts = (jobs: Job[]): BatchJobSourceUnion => {
   return jobs.map((job) => ({
-    custom_id: job.id,
     contents: [
       {
         parts: [

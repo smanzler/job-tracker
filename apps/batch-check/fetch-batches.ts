@@ -1,15 +1,9 @@
-import { MongoClient, ObjectId } from "mongodb";
+import { ObjectId } from "mongodb";
 import { z } from "zod";
+import { client } from "./mongo";
 
-const MONGO_URI = process.env.MONGO_URI;
 const DB_NAME = "jobNotifier";
 const BATCH_COLLECTION_NAME = "fitBatchJobs";
-
-if (!MONGO_URI) {
-  throw new Error("MONGO_URI is not set");
-}
-
-const client = new MongoClient(MONGO_URI);
 
 const batchJobSchema = z.object({
   _id: z.instanceof(ObjectId),
