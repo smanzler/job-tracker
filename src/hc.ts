@@ -73,10 +73,11 @@ async function getJobsFromHiringCafe(
 
   try {
     const [response] = await Promise.all([
-      page.waitForResponse(
-        (res) =>
-          res.url().includes("/api/search-jobs?s=") && res.status() === 200,
-      ),
+      page.waitForResponse((res) => {
+        const url = res.url();
+        const status = res.status();
+        return url.includes("/api/search-jobs?s=") && status === 200;
+      }),
       page.goto(searchState.url, { waitUntil: "networkidle" }),
     ]);
 
