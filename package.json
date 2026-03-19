@@ -1,28 +1,15 @@
 {
-  "name": "job-tracker",
+  "name": "jobby",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "tsc --outDir dist",
-    "start": "node dist/src/index.js",
-    "dev": "tsx src/index.ts"
+    "crawl": "pnpm --filter @jobby/crawler dev",
+    "fit": "pnpm --filter @jobby/fitter dev",
+    "dashboard": "pnpm --filter @jobby/dashboard dev"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "packageManager": "pnpm@10.25.0",
-  "dependencies": {
-    "@google/genai": "^1.42.0",
-    "dotenv": "^17.2.3",
-    "mongodb": "^7.0.0",
-    "playwright": "^1.58.0",
-    "zod": "^4.3.6"
-  },
-  "devDependencies": {
-    "@playwright/test": "^1.58.0",
-    "@types/node": "^25.0.10",
-    "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
-  }
+  "packageManager": "pnpm@10.25.0"
 }
