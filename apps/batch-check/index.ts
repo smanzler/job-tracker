@@ -1,7 +1,7 @@
 import "dotenv/config";
-import { fetchBatches } from "./fetch-batches";
-import { getCompletedBatchJobs } from "./status";
-import { updateJobScores } from "./scores";
+import { fetchBatches } from "./src/fetch-batches";
+import { getCompletedBatchJobs } from "./src/status";
+import { updateJobScores } from "./src/scores";
 
 async function main() {
   const batchJobs = await fetchBatches();

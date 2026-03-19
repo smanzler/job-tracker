@@ -1,0 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.notify = notify;
+async function notify(job) {
+    await fetch(process.env.DISCORD_WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            content: `${job.title} - ${job.posted_at.toLocaleDateString()}\n${job.company}\nSource: ${job.search_state}\n\n${job.url}`,
+        }),
+    });
+}
