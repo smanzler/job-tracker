@@ -138,7 +138,10 @@ async function getJobsFromHiringCafe(
 }
 
 export async function getJobs(): Promise<Result> {
-  const browser = await chromium.launch({ headless: true });
+  const browser = await chromium.launch({
+    headless: false,
+    args: ["--disable-blink-features=AutomationControlled"],
+  });
   const jobsMap = new Map<string, Job>();
 
   const errors: string[] = [];
